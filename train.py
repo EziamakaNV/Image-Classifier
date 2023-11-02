@@ -31,17 +31,19 @@ def train_model(data_directory, save_dir, arch, learning_rate, hidden_units, epo
     # Load a pre-trained network
     if arch == 'vgg16':
         model = models.vgg16(pretrained=True)
-    elif architecure == 'inception':
-        model = models.inception(pretrained=True)
-    elif architecure == 'alexnet':
-        model = models.alexnet(pretrained = True)
+        input_features = 25088
+    elif arch == 'densenet121':
+        model = models.densenet121(pretrained=True)
+        input_features = 1024
+    else:
+        raise ValueError("Unsupported architecture. Please choose 'vgg16' or 'densenet121'.")
 
     # Freeze parameters so we don't backprop through them
     for param in model.parameters():
         param.requires_grad = False
 
     # Replace the classifier
-    classifier = nn.Sequential(nn.Linear(25088, hidden_units),
+    classifier = nn.Sequential(nn.Linear(input_features, hidden_units),
                                nn.ReLU(),
                                nn.Dropout(0.2),
                                nn.Linear(hidden_units, 102),
@@ -115,7 +117,7 @@ if __name__ == "__main__":
     parser.add_argument('--learning_rate', type=float, default=0.001, help='Learning rate')
     parser.add_argument('--hidden_units', type=int, default=100, help='Hidden units')
     parser.add_argument('--epochs', type=int, default=3, help='Number of epochs')
-    parser.add_argument('--gpu', action='store_true', default="gpu",help='Use GPU for training')
+    parser.add_argument('--gpu', action='store_true',help='Use GPU for training')
 
     args = parser.parse_args()
     train_model(args.data_directory, args.save_dir, args.arch, args.learning_rate, args.hidden_units, args.epochs, args.gpu)
