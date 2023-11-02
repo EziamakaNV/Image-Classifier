@@ -6,11 +6,16 @@ import json
 
 def load_checkpoint(filepath):
     checkpoint = torch.load(filepath)
-    if checkpoint['arch'] == 'vgg16':
-        model = models.vgg16(pretrained=True)
-        model.classifier = checkpoint['classifier']
-    # Add conditions for other architectures if necessary
+    arch = checkpoint['arch']
 
+    if arch == 'vgg16':
+        model = models.vgg16(pretrained=True)
+    elif arch == 'densenet121':
+        model = models.densenet121(pretrained=True)
+    else:
+        raise ValueError(f"Architecture '{arch}' is not recognized. Please choose 'vgg16' or 'densenet121'.")
+
+    model.classifier = checkpoint['classifier']
     model.load_state_dict(checkpoint['state_dict'])
     model.class_to_idx = checkpoint['class_to_idx']
 
@@ -47,7 +52,7 @@ def predict(image_path, checkpoint, top_k, category_names, gpu):
     # Convert indices to class names using the category_names file
     with open(category_names, 'r') as f:
         cat_to_name = json.load(f)
-    names = [cat_to_name[str(index)] for index in top_classes]
+    names = [cat_to_name.get(str(index), f"Class {index}") for index in top_classes]
 
     print("Top K classes and their probabilities:")
     for i in range(top_k):
